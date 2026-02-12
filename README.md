@@ -1,4 +1,4 @@
-# Recursive Grid Assignment
+# Recursive Grid 
 
 ## Overview
 It is an interactive 3x3 grid game built with React and Tailwind CSS that demonstrates complex state management and conditional logic.
