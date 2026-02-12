@@ -3,37 +3,50 @@ import { useState } from 'react';
 function App() {
   const [grid, setGrid] = useState(Array(9).fill(0));
 
-  const handleBoxClick = (index) => {
-    // Locked check: If the clicked box is >= 15, do nothing
-    if (grid[index] >= 15) return;
+  const applyRipple = (grid, index, visited = new Set()) => {
+    // Prevent infinite loops from circular ripples
+    const key = `${index}-${grid[index]}`;
+    if (visited.has(key)) return;
+    visited.add(key);
 
-    const newGrid = [...grid];
-    const newValue = newGrid[index] + 1;
-    newGrid[index] = newValue;
+    const value = grid[index];
 
     // Rule A: Divisible by 3 -> decrease right neighbour
     // Constraint: Not if last column (indices 2, 5, 8)
-    if (newValue % 3 === 0) {
+    if (value % 3 === 0 && value !== 0) {
       if ((index + 1) % 3 !== 0) {
         const rightIndex = index + 1;
-        // Check if neighbour is locked
-        if (newGrid[rightIndex] < 15) {
-          newGrid[rightIndex] = newGrid[rightIndex] - 1;
+        if (grid[rightIndex] < 15) {
+          grid[rightIndex] = grid[rightIndex] - 1;
+          // Cascade: check if the neighbor's new value triggers further ripples
+          applyRipple(grid, rightIndex, visited);
         }
       }
     }
 
     // Rule B: Divisible by 5 -> increase bottom neighbour
     // Constraint: Not if bottom row (indices 6, 7, 8)
-    if (newValue % 5 === 0) {
+    if (value % 5 === 0 && value !== 0) {
       if (index < 6) {
         const bottomIndex = index + 3;
-        // Check if neighbour is locked
-        if (newGrid[bottomIndex] < 15) {
-          newGrid[bottomIndex] = newGrid[bottomIndex] + 2;
+        if (grid[bottomIndex] < 15) {
+          grid[bottomIndex] = grid[bottomIndex] + 2;
+          // Cascade: check if the neighbor's new value triggers further ripples
+          applyRipple(grid, bottomIndex, visited);
         }
       }
     }
+  };
+
+  const handleBoxClick = (index) => {
+    // Locked check: If the clicked box is >= 15, do nothing
+    if (grid[index] >= 15) return;
+
+    const newGrid = [...grid];
+    newGrid[index] = newGrid[index] + 1;
+
+    // Apply ripple effects starting from the clicked box, cascading to neighbors
+    applyRipple(newGrid, index);
 
     setGrid(newGrid);
   };
